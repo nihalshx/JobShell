@@ -1,6 +1,8 @@
-# 🚀 Swelist Web Terminal v4.0 - Enhanced
+# 🚀 JobShell - Enhanced Job Hunting Terminal
 
-A powerful, retro-styled web terminal interface for job hunting using the swelist library. Experience the nostalgia of 80s terminals with modern features while searching for tech jobs!
+A powerful, retro-styled terminal interface for exploring tech jobs. JobShell combines the nostalgia of classic terminals with modern job search capabilities, powered by the swelist library.
+
+**JobShell** - Because finding your dream job should feel like hacking the matrix! 💼⚡
 
 ## ✨ Enhanced Features
 
@@ -238,9 +240,9 @@ Inspired by classic terminal interfaces and the need for a more engaging job sea
 
 ---
 
-**Ready to hunt for jobs in style?** 💼✨
+**Ready to hack your way to your dream job?** 💼✨
 
-Fire up the terminal and type `help` to get started!
+Fire up JobShell and type `help` to get started!
 
 ## 🚀 Deployment
 

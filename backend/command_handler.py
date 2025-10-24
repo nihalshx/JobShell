@@ -167,7 +167,7 @@ class CommandHandler:
     
     def _help_command(self) -> Dict[str, Any]:
         help_text = """
-🚀 SWELIST WEB TERMINAL v4.0 - ENHANCED 🚀
+🚀 JOBSHELL - JOB HUNTING TERMINAL 🚀
 
 📁 JOB COMMANDS:
   fetch <type>            Fetch jobs (internships|newgrad|fulltime)

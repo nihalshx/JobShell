@@ -1,4 +1,4 @@
-name: Deploy Swelist Terminal
+name: Deploy JobShell
 
 on:
   push:
@@ -57,9 +57,9 @@ jobs:
         mkdir -p _site
         cp templates/index.html _site/
         cp README.md _site/
-        echo '<!DOCTYPE html><html><head><title>Swelist Terminal</title></head><body>' > _site/index.html
-        echo '<h1>🚀 Swelist Web Terminal</h1>' >> _site/index.html
-        echo '<p>A retro-styled terminal interface for job hunting!</p>' >> _site/index.html
+        echo '<!DOCTYPE html><html><head><title>JobShell</title></head><body>' > _site/index.html
+        echo '<h1>🚀 JobShell - Job Hunting Terminal</h1>' >> _site/index.html
+        echo '<p>A powerful terminal interface for exploring tech jobs!</p>' >> _site/index.html
         echo '<h2>🚀 Quick Start</h2>' >> _site/index.html
         echo '<pre><code>git clone https://github.com/${{ github.repository }}.git' >> _site/index.html
         echo 'cd JobShell' >> _site/index.html

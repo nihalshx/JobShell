@@ -1,13 +1,13 @@
-# 🚀 GitHub Deployment Instructions
+# 🚀 JobShell Deployment Instructions
 
-Your Swelist Web Terminal is ready for deployment! Follow these steps:
+Your JobShell terminal is ready for deployment! Follow these steps:
 
 ## Step 1: Create GitHub Repository
 
 1. Go to [GitHub](https://github.com) and sign in
 2. Click the "+" icon and select "New repository"
 3. Repository name: `JobShell` or `swelist-terminal`
-4. Description: `🚀 Enhanced retro-style web terminal for job hunting with swelist`
+4. Description: `🚀 JobShell - Enhanced terminal interface for job hunting`
 5. Keep it **Public** for free deployment options
 6. **Don't** initialize with README (we already have one)
 7. Click "Create repository"
@@ -102,4 +102,4 @@ export json bookmarks
 4. **Analytics**: Add usage tracking if desired
 5. **Backup**: Regular database backups if you add persistence
 
-Enjoy your deployed Swelist Web Terminal! 🎯
+Enjoy your deployed JobShell terminal! 🎯

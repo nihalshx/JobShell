@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "swelist-terminal",
+  "name": "jobshell",
   "builds": [
     {
       "src": "app.py",

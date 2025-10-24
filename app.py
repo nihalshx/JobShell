@@ -63,12 +63,12 @@ def handle_connect():
     
     # Send welcome message
     welcome_msg = """
-🚀 SWELIST WEB TERMINAL v1.0 🚀
+🚀 JOBSHELL - JOB HUNTING TERMINAL 🚀
 
-Welcome to the retro job hunting experience!
+Welcome to the ultimate job exploration experience!
 Type 'help' to see available commands.
 
-Ready for job hunting? Let's go! 💼
+Ready to hack your way to your dream job? Let's go! 💼⚡
     """.strip()
     
     emit('terminal_output', {
