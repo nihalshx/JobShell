@@ -244,17 +244,6 @@ Fire up the terminal and type `help` to get started!
 
 ## 🚀 Deployment
 
-### 🐳 Docker Deployment
-
-```bash
-# Build and run with Docker
-docker build -t swelist-terminal .
-docker run -p 5000:5000 swelist-terminal
-
-# Or use Docker Compose
-docker-compose up -d
-```
-
 ### ☁️ Cloud Deployment
 
 #### **Vercel** (Recommended)
@@ -275,7 +264,6 @@ docker-compose up -d
 
 Automatic deployment is configured with GitHub Actions:
 - ✅ **Testing**: Code quality checks and testing
-- 🐳 **Docker**: Build and test Docker images
 - 📄 **Pages**: Deploy documentation to GitHub Pages
 
 ### 🔗 Live Demo

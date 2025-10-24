@@ -32,26 +32,8 @@ jobs:
         pip install flake8
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Build Docker image
-      run: |
-        docker build -t swelist-terminal .
-        
-    - name: Test Docker image
-      run: |
-        docker run -d -p 5000:5000 --name test-container swelist-terminal
-        sleep 10
-        curl -f http://localhost:5000/health || exit 1
-        docker stop test-container
-        
   deploy-pages:
-    needs: [test, build]
+    needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     
