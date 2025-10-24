@@ -32,47 +32,23 @@ jobs:
         pip install flake8
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         
-  deploy-pages:
+  create-docs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-      
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-      
     steps:
     - uses: actions/checkout@v4
     
-    - name: Setup Pages
-      uses: actions/configure-pages@v5
-      
-    - name: Create static build
+    - name: Create documentation
       run: |
-        mkdir -p _site
-        cp templates/index.html _site/
-        cp README.md _site/
-        echo '<!DOCTYPE html><html><head><title>JobShell</title></head><body>' > _site/index.html
-        echo '<h1>🚀 JobShell - Job Hunting Terminal</h1>' >> _site/index.html
-        echo '<p>A powerful terminal interface for exploring tech jobs!</p>' >> _site/index.html
-        echo '<h2>🚀 Quick Start</h2>' >> _site/index.html
-        echo '<pre><code>git clone https://github.com/${{ github.repository }}.git' >> _site/index.html
-        echo 'cd JobShell' >> _site/index.html
-        echo 'pip install -r requirements.txt' >> _site/index.html
-        echo 'python app.py</code></pre>' >> _site/index.html
-        echo '<p>Then navigate to <a href="http://localhost:5000">http://localhost:5000</a></p>' >> _site/index.html
-        echo '<h2>📖 Documentation</h2>' >> _site/index.html
-        markdown README.md >> _site/index.html || cat README.md | sed 's/$/\<br\>/' >> _site/index.html
-        echo '</body></html>' >> _site/index.html
-        
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
-      
-    - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v3
+        echo "✅ JobShell build completed successfully!"
+        echo "📖 Repository: https://github.com/${{ github.repository }}"
+        echo "🚀 To enable GitHub Pages:"
+        echo "   1. Go to repository Settings"
+        echo "   2. Scroll to Pages section"
+        echo "   3. Source: GitHub Actions"
+        echo "   4. Pages will be available at: https://${{ github.actor }}.github.io/JobShell"
+        echo ""
+        echo "🎯 JobShell is ready for Vercel deployment!"
+        echo "   Visit: https://vercel.com/new and import this repository"

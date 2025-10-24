@@ -35,10 +35,16 @@ Replace `YOUR_USERNAME` and `YOUR_REPO_NAME` with your actual values.
 
 ## Step 4: Enable GitHub Pages (Optional)
 
-1. Go to repository "Settings"
-2. Scroll to "Pages" section
-3. Source: "GitHub Actions"
-4. Your documentation will be available at: `https://YOUR_USERNAME.github.io/YOUR_REPO_NAME`
+**Important**: You need to enable Pages manually in your repository settings.
+
+1. Go to your repository on GitHub
+2. Click "Settings" tab (top of repository page)
+3. Scroll down to "Pages" section (left sidebar under "Code and automation")
+4. Under "Source", select "GitHub Actions"
+5. Click "Save"
+6. Your documentation will be available at: `https://YOUR_USERNAME.github.io/JobShell`
+
+**Note**: It may take a few minutes for your site to be published after enabling Pages.
 
 ## Step 5: Deploy to Cloud Platform
 
