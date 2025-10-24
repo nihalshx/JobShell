@@ -262,22 +262,6 @@ docker-compose up -d
 2. Connect your GitHub repo to [Vercel](https://vercel.com)
 3. Deploy automatically with zero configuration
 
-#### **Railway**
-1. Fork this repository
-2. Connect to [Railway](https://railway.app)
-3. Deploy with one click
-
-#### **Render**
-1. Fork this repository
-2. Connect to [Render](https://render.com)
-3. Use the provided Dockerfile for deployment
-
-#### **Heroku**
-```bash
-# Install Heroku CLI and login
-heroku create your-app-name
-git push heroku main
-```
 
 ### 🔧 Environment Variables
 

@@ -50,26 +50,6 @@ Choose one of these options:
 3. Import your repository
 4. Deploy automatically - no configuration needed!
 
-### 🚂 Railway
-1. Go to [railway.app](https://railway.app)
-2. Sign in with GitHub
-3. "New Project" → "Deploy from GitHub repo"
-4. Select your repository
-5. Deploy automatically!
-
-### 🎨 Render
-1. Go to [render.com](https://render.com)
-2. Sign in with GitHub
-3. "New" → "Web Service"
-4. Connect your repository
-5. Use Docker deployment
-
-### 💜 Heroku
-```bash
-# Install Heroku CLI first
-heroku create your-app-name
-git push heroku main
-```
 
 ## Step 6: Configure Environment Variables
 
