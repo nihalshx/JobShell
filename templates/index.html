@@ -80,7 +80,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, var(--primary-color)22, transparent 70%);
+            background: radial-gradient(circle, var(--primary-color) 22%, transparent 70%);
             opacity: 0.05;
             animation: pulse 4s ease-in-out infinite;
             pointer-events: none;
@@ -91,7 +91,7 @@
             background: rgba(0, 255, 0, 0.1);
             border-bottom: 1px solid #00ff00;
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
         }
         
@@ -166,23 +166,7 @@
             font-weight: bold;
         }
         
-        /* Scrollbar styling */
-        .terminal-output::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .terminal-output::-webkit-scrollbar-track {
-            background: #001100;
-        }
-        
-        .terminal-output::-webkit-scrollbar-thumb {
-            background: #003300;
-            border-radius: 4px;
-        }
-        
-        .terminal-output::-webkit-scrollbar-thumb:hover {
-            background: #004400;
-        }
+        /* Scrollbar styling - removed duplicate */
         
         /* Animations */
         @keyframes glow {
@@ -600,17 +584,19 @@
             }
         });
         
-        // Hide completions when typing
-        commandInput.addEventListener('input', () => {
+        // Hide completions when typing and debug input
+        commandInput.addEventListener('input', (e) => {
             hideCompletions();
+            console.log('📝 Input event:', e.target.value);
         });
         
-        // Focus the input field
-        commandInput.focus();
+        // Focus event handlers
+        commandInput.addEventListener('focus', () => {
+            console.log('🎯 Input focused');
+        });
         
-        // Refocus when clicking anywhere
-        document.addEventListener('click', () => {
-            commandInput.focus();
+        commandInput.addEventListener('blur', () => {
+            console.log('😴 Input blurred');
         });
         
         // Initialize enhanced features
@@ -641,21 +627,16 @@
             console.log('✅ Enhanced Terminal v4.0 initialized');
         }
         
+        // Focus the input field
+        commandInput.focus();
+        
+        // Refocus when clicking anywhere
+        document.addEventListener('click', () => {
+            commandInput.focus();
+        });
+        
         // Initialize
         initializeTerminal();
-        
-        // Debug input events
-        commandInput.addEventListener('input', (e) => {
-            console.log('📝 Input event:', e.target.value);
-        });
-        
-        commandInput.addEventListener('focus', () => {
-            console.log('🎯 Input focused');
-        });
-        
-        commandInput.addEventListener('blur', () => {
-            console.log('😴 Input blurred');
-        });
     </script>
 </body>
 </html>
