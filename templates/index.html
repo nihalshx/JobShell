@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swelist Terminal v4.0 - Enhanced</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary-color: #00ff00;
+            --bg-color: #000;
+            --bg-gradient: linear-gradient(45deg, #001100, #000000);
+            --border-color: #00ff00;
+            --text-color: #00ff00;
+            --success-color: #44ff44;
+            --error-color: #ff4444;
+            --info-color: #44ffff;
+            --warning-color: #ffff44;
+        }
+        
+        [data-theme="blue"] {
+            --primary-color: #00aaff;
+            --border-color: #00aaff;
+            --text-color: #00aaff;
+            --bg-gradient: linear-gradient(45deg, #001122, #000011);
+        }
+        
+        [data-theme="amber"] {
+            --primary-color: #ffaa00;
+            --border-color: #ffaa00;
+            --text-color: #ffaa00;
+            --bg-gradient: linear-gradient(45deg, #221100, #110000);
+        }
+        
+        [data-theme="red"] {
+            --primary-color: #ff3333;
+            --border-color: #ff3333;
+            --text-color: #ff3333;
+            --bg-gradient: linear-gradient(45deg, #220011, #110000);
+        }
+        
+        [data-theme="purple"] {
+            --primary-color: #aa44ff;
+            --border-color: #aa44ff;
+            --text-color: #aa44ff;
+            --bg-gradient: linear-gradient(45deg, #110022, #000011);
+        }
+        
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .terminal-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-gradient);
+            border: 3px solid var(--border-color);
+            box-shadow: 0 0 30px var(--primary-color);
+            transition: all 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .terminal-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--primary-color)22, transparent 70%);
+            opacity: 0.05;
+            animation: pulse 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        .header {
+            padding: 10px 20px;
+            background: rgba(0, 255, 0, 0.1);
+            border-bottom: 1px solid #00ff00;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        
+        .title {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        
+        .status {
+            margin-left: auto;
+            color: #00aa00;
+            font-size: 12px;
+        }
+        
+        .terminal-output {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.8);
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .input-container {
+            display: flex;
+            padding: 10px 20px;
+            background: rgba(0, 255, 0, 0.1);
+            border-top: 1px solid #00ff00;
+            align-items: center;
+        }
+        
+        .prompt {
+            color: #00ff00;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .command-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            outline: none;
+            caret-color: #00ff00;
+        }
+        
+        .command-input::placeholder {
+            color: #004400;
+        }
+        
+        .output-line {
+            margin: 2px 0;
+        }
+        
+        .error {
+            color: #ff4444;
+        }
+        
+        .success {
+            color: #44ff44;
+        }
+        
+        .info {
+            color: #44ffff;
+        }
+        
+        .welcome {
+            color: #ffff44;
+            font-weight: bold;
+        }
+        
+        /* Scrollbar styling */
+        .terminal-output::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .terminal-output::-webkit-scrollbar-track {
+            background: #001100;
+        }
+        
+        .terminal-output::-webkit-scrollbar-thumb {
+            background: #003300;
+            border-radius: 4px;
+        }
+        
+        .terminal-output::-webkit-scrollbar-thumb:hover {
+            background: #004400;
+        }
+        
+        /* Animations */
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 5px var(--primary-color); }
+            50% { text-shadow: 0 0 10px var(--primary-color), 0 0 15px var(--primary-color); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.05; }
+            50% { opacity: 0.15; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes typeWriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .command-input {
+            animation: glow 2s ease-in-out infinite;
+        }
+        
+        .output-line {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .new-output {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Completions popup */
+        .completions {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .completions.show {
+            display: block;
+            animation: fadeIn 0.2s ease-out;
+        }
+        
+        .completion-item {
+            padding: 8px 12px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .completion-item:hover,
+        .completion-item.active {
+            background: rgba(0, 255, 0, 0.1);
+        }
+        
+        /* Loading indicator */
+        .loading-dots {
+            display: inline-block;
+        }
+        
+        .loading-dots::after {
+            content: '';
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+        
+        /* Enhanced scrollbar */
+        .terminal-output::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        .terminal-output::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+        
+        .terminal-output::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 5px;
+            opacity: 0.7;
+        }
+        
+        .terminal-output::-webkit-scrollbar-thumb:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-container">
+        <div class="header">
+            <div class="title">🚀 SWELIST WEB TERMINAL v3.0</div>
+            <div class="status" id="status">●CONNECTING</div>
+        </div>
+        
+        <div class="terminal-output" id="output">
+            <div class="output-line welcome">Welcome to Swelist Web Terminal!</div>
+            <div class="output-line">Type 'help' to see available commands.</div>
+            <div class="output-line">Ready for job hunting! 💼</div>
+            <div class="output-line"></div>
+        </div>
+        
+        <div class="input-container">
+            <div class="completions" id="completions"></div>
+            <span class="prompt">$</span>
+            <input type="text" class="command-input" id="commandInput" 
+                   placeholder="Type your command here... (Tab for completions)" 
+                   autocomplete="off" 
+                   spellcheck="false">
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        console.log('🚀 Initializing Simple Terminal...');
+        
+        const socket = io();
+        const outputDiv = document.getElementById('output');
+        const commandInput = document.getElementById('commandInput');
+        const statusDiv = document.getElementById('status');
+        const completionsDiv = document.getElementById('completions');
+        
+        let commandHistory = [];
+        let historyIndex = -1;
+        let completions = [];
+        let completionIndex = -1;
+        let currentTheme = 'green';
+        let isLoading = false;
+        
+        // Socket connection events
+        socket.on('connect', () => {
+            console.log('✅ Connected to server');
+            statusDiv.textContent = '●ONLINE';
+            statusDiv.style.color = '#00ff00';
+            addOutput('Connected to server!', 'success');
+        });
+        
+        socket.on('disconnect', () => {
+            console.log('❌ Disconnected from server');
+            statusDiv.textContent = '●OFFLINE';
+            statusDiv.style.color = '#ff4444';
+            addOutput('Connection lost!', 'error');
+        });
+        
+        socket.on('terminal_output', (data) => {
+            const output = data.output || '';
+            const type = data.type || 'output';
+            addOutput(output, type);
+        });
+        
+        socket.on('clear_terminal', () => {
+            outputDiv.innerHTML = '';
+        });
+        
+        socket.on('open_link', (data) => {
+            if (data.url) {
+                addOutput(`🌐 Opening: ${data.url}`, 'info');
+                window.open(data.url, '_blank');
+            }
+        });
+        
+        socket.on('download_file', (data) => {
+            const blob = new Blob([data.data], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = data.filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        });
+        
+        socket.on('theme_change', (data) => {
+            changeTheme(data.theme);
+        });
+        
+        socket.on('save_session', (data) => {
+            localStorage.setItem('swelist_session', JSON.stringify(data));
+        });
+        
+        socket.on('load_session', () => {
+            const saved = localStorage.getItem('swelist_session');
+            if (saved) {
+                const data = JSON.parse(saved);
+                if (data.preferences && data.preferences.theme) {
+                    changeTheme(data.preferences.theme);
+                }
+                addOutput('🔄 Session loaded successfully!', 'success');
+            } else {
+                addOutput('📋 No saved session found', 'info');
+            }
+        });
+        
+        socket.on('show_completions', (data) => {
+            showCompletions(data.completions);
+        });
+        
+        // Enhanced output function
+        function addOutput(text, type = 'output') {
+            const line = document.createElement('div');
+            line.className = `output-line ${type} new-output`;
+            line.textContent = text;
+            outputDiv.appendChild(line);
+            
+            // Auto-scroll to bottom with smooth animation
+            setTimeout(() => {
+                outputDiv.scrollTo({
+                    top: outputDiv.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 50);
+            
+            // Remove animation class after animation completes
+            setTimeout(() => {
+                line.classList.remove('new-output');
+            }, 500);
+        }
+        
+        // Theme change function
+        function changeTheme(theme) {
+            currentTheme = theme;
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('swelist_theme', theme);
+            
+            // Update completions styling
+            const completionItems = document.querySelectorAll('.completion-item');
+            completionItems.forEach(item => {
+                item.style.borderColor = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--primary-color');
+            });
+        }
+        
+        // Auto-completion functions
+        function showCompletions(completionList) {
+            completions = completionList;
+            completionIndex = -1;
+            
+            if (completions.length === 0) {
+                hideCompletions();
+                return;
+            }
+            
+            completionsDiv.innerHTML = '';
+            completions.forEach((completion, index) => {
+                const item = document.createElement('div');
+                item.className = 'completion-item';
+                item.textContent = completion;
+                item.addEventListener('click', () => {
+                    selectCompletion(index);
+                });
+                completionsDiv.appendChild(item);
+            });
+            
+            completionsDiv.classList.add('show');
+            if (completions.length > 0) {
+                updateCompletionSelection(0);
+            }
+        }
+        
+        function hideCompletions() {
+            completionsDiv.classList.remove('show');
+            completions = [];
+            completionIndex = -1;
+        }
+        
+        function updateCompletionSelection(index) {
+            const items = completionsDiv.querySelectorAll('.completion-item');
+            items.forEach((item, i) => {
+                if (i === index) {
+                    item.classList.add('active');
+                    completionIndex = i;
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+        
+        function selectCompletion(index = completionIndex) {
+            if (index >= 0 && index < completions.length) {
+                const completion = completions[index];
+                const currentValue = commandInput.value;
+                const parts = currentValue.split(' ');
+                
+                if (parts.length === 1) {
+                    commandInput.value = completion + ' ';
+                } else {
+                    parts[parts.length - 1] = completion;
+                    commandInput.value = parts.join(' ') + ' ';
+                }
+                
+                commandInput.focus();
+                hideCompletions();
+            }
+        }
+        
+        // Loading indicator
+        function showLoading(message = 'Processing') {
+            isLoading = true;
+            const loadingLine = document.createElement('div');
+            loadingLine.className = 'output-line info loading-line';
+            loadingLine.innerHTML = `${message}<span class="loading-dots"></span>`;
+            outputDiv.appendChild(loadingLine);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+        
+        function hideLoading() {
+            isLoading = false;
+            const loadingLines = document.querySelectorAll('.loading-line');
+            loadingLines.forEach(line => line.remove());
+        }
+        
+        // Enhanced input handling
+        commandInput.addEventListener('keydown', (e) => {
+            console.log('🎹 Key pressed:', e.key);
+            
+            // Handle completions navigation
+            if (completionsDiv.classList.contains('show')) {
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const newIndex = completionIndex > 0 ? completionIndex - 1 : completions.length - 1;
+                    updateCompletionSelection(newIndex);
+                    return;
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const newIndex = completionIndex < completions.length - 1 ? completionIndex + 1 : 0;
+                    updateCompletionSelection(newIndex);
+                    return;
+                } else if (e.key === 'Enter' && completionIndex >= 0) {
+                    e.preventDefault();
+                    selectCompletion();
+                    return;
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    hideCompletions();
+                    return;
+                }
+            }
+            
+            if (e.key === 'Enter') {
+                const command = commandInput.value.trim();
+                hideCompletions();
+                
+                if (command) {
+                    // Show the command in output
+                    addOutput(`$ ${command}`);
+                    
+                    // Add to history
+                    if (commandHistory[0] !== command) {
+                        commandHistory.unshift(command);
+                        if (commandHistory.length > 20) {
+                            commandHistory = commandHistory.slice(0, 20);
+                        }
+                    }
+                    
+                    // Show loading
+                    showLoading('Processing command');
+                    
+                    // Send to server
+                    console.log('📤 Sending command:', command);
+                    socket.emit('command', { command: command });
+                    
+                    // Clear input
+                    commandInput.value = '';
+                    historyIndex = -1;
+                } else {
+                    addOutput('$');
+                }
+            } else if (e.key === 'Tab') {
+                e.preventDefault();
+                const currentValue = commandInput.value;
+                if (currentValue.trim()) {
+                    socket.emit('command', { command: `complete ${currentValue}` });
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (historyIndex < commandHistory.length - 1) {
+                    historyIndex++;
+                    commandInput.value = commandHistory[historyIndex];
+                }
+                hideCompletions();
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    commandInput.value = commandHistory[historyIndex];
+                } else if (historyIndex === 0) {
+                    historyIndex = -1;
+                    commandInput.value = '';
+                }
+                hideCompletions();
+            } else if (e.key === 'Escape') {
+                hideCompletions();
+            }
+        });
+        
+        // Hide completions when typing
+        commandInput.addEventListener('input', () => {
+            hideCompletions();
+        });
+        
+        // Focus the input field
+        commandInput.focus();
+        
+        // Refocus when clicking anywhere
+        document.addEventListener('click', () => {
+            commandInput.focus();
+        });
+        
+        // Initialize enhanced features
+        function initializeTerminal() {
+            // Load saved theme
+            const savedTheme = localStorage.getItem('swelist_theme') || 'green';
+            changeTheme(savedTheme);
+            
+            // Load saved session
+            const savedSession = localStorage.getItem('swelist_session');
+            if (savedSession) {
+                try {
+                    const data = JSON.parse(savedSession);
+                    if (data.preferences && data.preferences.theme) {
+                        changeTheme(data.preferences.theme);
+                    }
+                    addOutput('🔄 Previous session restored', 'info');
+                } catch (e) {
+                    console.warn('Failed to load saved session:', e);
+                }
+            }
+            
+            // Hide loading after response
+            socket.on('terminal_output', (data) => {
+                hideLoading();
+            });
+            
+            console.log('✅ Enhanced Terminal v4.0 initialized');
+        }
+        
+        // Initialize
+        initializeTerminal();
+        
+        // Debug input events
+        commandInput.addEventListener('input', (e) => {
+            console.log('📝 Input event:', e.target.value);
+        });
+        
+        commandInput.addEventListener('focus', () => {
+            console.log('🎯 Input focused');
+        });
+        
+        commandInput.addEventListener('blur', () => {
+            console.log('😴 Input blurred');
+        });
+    </script>
+</body>
+</html>

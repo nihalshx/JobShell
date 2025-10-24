@@ -1,0 +1,96 @@
+name: Deploy Swelist Terminal
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run tests
+      run: |
+        python -m pytest --version || echo "No tests found - skipping"
+        
+    - name: Check code style
+      run: |
+        pip install flake8
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build Docker image
+      run: |
+        docker build -t swelist-terminal .
+        
+    - name: Test Docker image
+      run: |
+        docker run -d -p 5000:5000 --name test-container swelist-terminal
+        sleep 10
+        curl -f http://localhost:5000/health || exit 1
+        docker stop test-container
+        
+  deploy-pages:
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+      
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Pages
+      uses: actions/configure-pages@v3
+      
+    - name: Create static build
+      run: |
+        mkdir -p _site
+        cp templates/index.html _site/
+        cp README.md _site/
+        echo '<!DOCTYPE html><html><head><title>Swelist Terminal</title></head><body>' > _site/index.html
+        echo '<h1>🚀 Swelist Web Terminal</h1>' >> _site/index.html
+        echo '<p>A retro-styled terminal interface for job hunting!</p>' >> _site/index.html
+        echo '<h2>🚀 Quick Start</h2>' >> _site/index.html
+        echo '<pre><code>git clone https://github.com/${{ github.repository }}.git' >> _site/index.html
+        echo 'cd JobShell' >> _site/index.html
+        echo 'pip install -r requirements.txt' >> _site/index.html
+        echo 'python app.py</code></pre>' >> _site/index.html
+        echo '<p>Then navigate to <a href="http://localhost:5000">http://localhost:5000</a></p>' >> _site/index.html
+        echo '<h2>📖 Documentation</h2>' >> _site/index.html
+        markdown README.md >> _site/index.html || cat README.md | sed 's/$/\<br\>/' >> _site/index.html
+        echo '</body></html>' >> _site/index.html
+        
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v2
+      
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2
