@@ -17,6 +17,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
 
 from backend.command_handler import CommandHandler, JobShellSession
 from backend.swelist_wrapper import SwelistWrapper
+from datetime import datetime, timedelta
+import threading
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -31,13 +33,47 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # Global session storage (in production, use Redis or database)
 sessions: Dict[str, JobShellSession] = {}
+session_last_activity: Dict[str, datetime] = {}
 swelist_client = SwelistWrapper()
+
+def cleanup_stale_sessions():
+    """Periodically clean up inactive sessions to prevent memory leaks"""
+    while True:
+        try:
+            # Sleep for 5 minutes between cleanups
+            threading.Event().wait(300)
+            
+            current_time = datetime.now()
+            stale_sessions = []
+            
+            # Find sessions inactive for more than 30 minutes
+            for session_id, last_activity in list(session_last_activity.items()):
+                if current_time - last_activity > timedelta(minutes=30):
+                    stale_sessions.append(session_id)
+            
+            # Remove stale sessions
+            for session_id in stale_sessions:
+                if session_id in sessions:
+                    del sessions[session_id]
+                if session_id in session_last_activity:
+                    del session_last_activity[session_id]
+                logger.info(f"Cleaned up stale session: {session_id}")
+                
+        except Exception as e:
+            logger.error(f"Error in session cleanup: {e}")
+
+# Start cleanup thread
+cleanup_thread = threading.Thread(target=cleanup_stale_sessions, daemon=True)
+cleanup_thread.start()
 
 def get_or_create_session(session_id: str) -> JobShellSession:
     """Get existing session or create new one"""
     if session_id not in sessions:
         sessions[session_id] = JobShellSession()
         logger.info(f"Created new session: {session_id}")
+    
+    # Update last activity time
+    session_last_activity[session_id] = datetime.now()
     return sessions[session_id]
 
 @app.route('/')
@@ -82,9 +118,9 @@ def handle_disconnect():
     session_id = request.sid
     logger.info(f"Client disconnected: {session_id}")
     
-    # Clean up session (optional, or keep for reconnection)
-    if session_id in sessions:
-        del sessions[session_id]
+    # Clean up session after a delay to allow for quick reconnections
+    # This prevents memory leaks while still supporting reconnections
+    # Note: In production, use Redis with TTL or a scheduled cleanup task
 
 @socketio.on('command')
 def handle_command(data):
@@ -117,11 +153,17 @@ def handle_command(data):
                 'type': 'info'
             })
             
-            # Use asyncio to fetch jobs
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+            # Use asyncio to fetch jobs - reuse existing event loop if available
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_closed():
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            
             jobs = loop.run_until_complete(swelist_client.fetch_jobs(job_type))
-            loop.close()
             
             # Update session with jobs
             session.set_jobs(jobs)

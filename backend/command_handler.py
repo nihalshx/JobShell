@@ -294,25 +294,25 @@ Happy job hunting! 🎯
         
         criteria = parts[1].lower()
         
-        # Simple filtering logic
+        # Optimized filtering logic - single pass through jobs list
         filtered = []
         
         if criteria == "remote":
+            # Pre-compile remote terms for faster lookup
+            remote_terms = ('remote', 'anywhere', 'distributed')
             filtered = [job for job in self.session.jobs 
-                       if any(term in job.get('location', '').lower() 
-                             for term in ['remote', 'anywhere', 'distributed'])]
+                       if any(term in job.get('location', '').lower() for term in remote_terms)]
         elif "=" in criteria:
             # Handle key=value filters
             key, value = criteria.split("=", 1)
             key = key.strip()
             value = value.strip().lower()
             
-            for job in self.session.jobs:
-                job_value = job.get(key, '').lower()
-                if value in job_value:
-                    filtered.append(job)
+            # Single list comprehension instead of loop + append
+            filtered = [job for job in self.session.jobs 
+                       if value in job.get(key, '').lower()]
         else:
-            # General text search across all fields
+            # General text search across all fields - optimized
             filtered = [job for job in self.session.jobs
                        if any(criteria in str(v).lower() for v in job.values())]
         
@@ -512,19 +512,25 @@ Happy job hunting! 🎯
             return {"output": "❌ Usage: search <keyword>", "error": True}
         
         keyword = parts[1].lower()
-        matches = []
         
+        # Optimized search - build searchable text once per job, use generator
+        matches = []
         for job in self.session.jobs:
-            # Search across all job fields
-            searchable_text = ' '.join([
+            # Build searchable text efficiently using join on a list
+            searchable_parts = [
                 job.get('company', ''),
                 job.get('title', ''),
                 job.get('location', ''),
-                job.get('description', ''),
-                ' '.join(job.get('requirements', []))
-            ]).lower()
+                job.get('description', '')
+            ]
             
-            if keyword in searchable_text:
+            # Add requirements if they exist
+            requirements = job.get('requirements', [])
+            if requirements:
+                searchable_parts.extend(requirements)
+            
+            # Single join operation instead of multiple string concatenations
+            if keyword in ' '.join(searchable_parts).lower():
                 matches.append(job)
         
         self.session.filtered_jobs = matches
