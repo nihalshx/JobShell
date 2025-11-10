@@ -1,3 +1,10 @@
+"""
+Swelist Wrapper Module
+
+This module provides a wrapper around the swelist library for fetching
+job data with support for mock data fallback and real API integration.
+"""
+
 import asyncio
 import logging
 from typing import Dict, List, Any, Optional
@@ -8,7 +15,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class SwelistWrapper:
-    """Wrapper for swelist library to fetch job data"""
+    """
+    Wrapper for swelist library to fetch job data.
+    
+    Provides both real and mock data modes with automatic fallback
+    for development and testing purposes.
+    """
     
     # Class-level constants for better performance
     SWELIST_TYPE_MAP = {
@@ -18,7 +30,8 @@ class SwelistWrapper:
     }
     
     def __init__(self):
-        self.last_fetch_time = None
+        """Initialize the wrapper in mock mode."""
+        self.last_fetch_time: Optional[datetime] = None
         self._mock_mode = True  # Start in mock mode, can be toggled
         
     async def fetch_jobs(self, job_type: str) -> List[Dict[str, Any]]:

@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
-Swelist Web Terminal - Flask Backend
-A retro-styled web terminal for job searching using swelist
+JobShell Web Terminal - Flask Backend
+
+A retro-styled web terminal for job searching using swelist.
+Provides real-time communication via WebSocket for an interactive
+terminal experience.
 """
 
 import asyncio
@@ -21,7 +24,10 @@ from datetime import datetime, timedelta
 import threading
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 # Initialize Flask app
@@ -37,7 +43,12 @@ session_last_activity: Dict[str, datetime] = {}
 swelist_client = SwelistWrapper()
 
 def cleanup_stale_sessions():
-    """Periodically clean up inactive sessions to prevent memory leaks"""
+    """
+    Periodically clean up inactive sessions to prevent memory leaks.
+    
+    Runs in a background thread and removes sessions that have been
+    inactive for more than 30 minutes.
+    """
     while True:
         try:
             # Sleep for 5 minutes between cleanups
@@ -67,7 +78,15 @@ cleanup_thread = threading.Thread(target=cleanup_stale_sessions, daemon=True)
 cleanup_thread.start()
 
 def get_or_create_session(session_id: str) -> JobShellSession:
-    """Get existing session or create new one"""
+    """
+    Get existing session or create a new one.
+    
+    Args:
+        session_id: Unique identifier for the session
+        
+    Returns:
+        JobShellSession instance for this session ID
+    """
     if session_id not in sessions:
         sessions[session_id] = JobShellSession()
         logger.info(f"Created new session: {session_id}")
@@ -124,11 +143,27 @@ def handle_disconnect():
 
 @socketio.on('command')
 def handle_command(data):
-    """Handle terminal commands from client"""
+    """
+    Handle terminal commands from client.
+    
+    Validates input, processes commands, and sends appropriate
+    responses back to the client via WebSocket.
+    
+    Args:
+        data: Dictionary containing 'command' key with command string
+    """
     session_id = request.sid
     command = data.get('command', '').strip()
     
+    # Input validation - prevent empty or excessively long commands
     if not command:
+        return
+    
+    if len(command) > 1000:  # Reasonable limit for command length
+        emit('terminal_output', {
+            'output': '❌ Command too long. Maximum 1000 characters allowed.',
+            'type': 'error'
+        })
         return
     
     logger.info(f"Session {session_id}: '{command}'")
