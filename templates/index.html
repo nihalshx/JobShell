@@ -316,6 +316,7 @@
         let completionIndex = -1;
         let currentTheme = 'green';
         let isLoading = false;
+        let scrollTimeout = null;  // For debouncing scroll operations
         
         // Socket connection events
         socket.on('connect', () => {
@@ -393,13 +394,13 @@
             line.textContent = text;
             outputDiv.appendChild(line);
             
-            // Auto-scroll to bottom with smooth animation
-            setTimeout(() => {
-                outputDiv.scrollTo({
-                    top: outputDiv.scrollHeight,
-                    behavior: 'smooth'
-                });
-            }, 50);
+            // Debounce scroll to reduce reflows - use instant scroll instead of smooth
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+            scrollTimeout = setTimeout(() => {
+                outputDiv.scrollTop = outputDiv.scrollHeight;
+            }, 10);
             
             // Remove animation class after animation completes
             setTimeout(() => {
@@ -413,12 +414,8 @@
             document.body.setAttribute('data-theme', theme);
             localStorage.setItem('swelist_theme', theme);
             
-            // Update completions styling
-            const completionItems = document.querySelectorAll('.completion-item');
-            completionItems.forEach(item => {
-                item.style.borderColor = getComputedStyle(document.documentElement)
-                    .getPropertyValue('--primary-color');
-            });
+            // No need to manually update completion items - CSS variables handle this
+            // Removed querySelectorAll and getComputedStyle loop for better performance
         }
         
         // Auto-completion functions
@@ -455,15 +452,16 @@
         }
         
         function updateCompletionSelection(index) {
-            const items = completionsDiv.querySelectorAll('.completion-item');
-            items.forEach((item, i) => {
+            // Cache completion items to avoid repeated DOM queries
+            const items = completionsDiv.children;
+            for (let i = 0; i < items.length; i++) {
                 if (i === index) {
-                    item.classList.add('active');
+                    items[i].classList.add('active');
                     completionIndex = i;
                 } else {
-                    item.classList.remove('active');
+                    items[i].classList.remove('active');
                 }
-            });
+            }
         }
         
         function selectCompletion(index = completionIndex) {
@@ -485,24 +483,29 @@
         }
         
         // Loading indicator
+        let currentLoadingLine = null;  // Cache loading line reference
+        
         function showLoading(message = 'Processing') {
             isLoading = true;
-            const loadingLine = document.createElement('div');
-            loadingLine.className = 'output-line info loading-line';
-            loadingLine.innerHTML = `${message}<span class="loading-dots"></span>`;
-            outputDiv.appendChild(loadingLine);
+            currentLoadingLine = document.createElement('div');
+            currentLoadingLine.className = 'output-line info loading-line';
+            currentLoadingLine.innerHTML = `${message}<span class="loading-dots"></span>`;
+            outputDiv.appendChild(currentLoadingLine);
             outputDiv.scrollTop = outputDiv.scrollHeight;
         }
         
         function hideLoading() {
             isLoading = false;
-            const loadingLines = document.querySelectorAll('.loading-line');
-            loadingLines.forEach(line => line.remove());
+            // Use cached reference instead of querySelectorAll
+            if (currentLoadingLine && currentLoadingLine.parentNode) {
+                currentLoadingLine.remove();
+                currentLoadingLine = null;
+            }
         }
         
         // Enhanced input handling
         commandInput.addEventListener('keydown', (e) => {
-            console.log('🎹 Key pressed:', e.key);
+            // Removed excessive console logging for better performance
             
             // Handle completions navigation
             if (completionsDiv.classList.contains('show')) {
@@ -546,8 +549,7 @@
                     // Show loading
                     showLoading('Processing command');
                     
-                    // Send to server
-                    console.log('📤 Sending command:', command);
+                    // Send to server (removed excessive console logging)
                     socket.emit('command', { command: command });
                     
                     // Clear input
@@ -584,19 +586,18 @@
             }
         });
         
-        // Hide completions when typing and debug input
+        // Hide completions when typing (removed excessive console logging)
         commandInput.addEventListener('input', (e) => {
             hideCompletions();
-            console.log('📝 Input event:', e.target.value);
         });
         
-        // Focus event handlers
+        // Focus event handlers (removed excessive console logging for performance)
         commandInput.addEventListener('focus', () => {
-            console.log('🎯 Input focused');
+            // Focus event - no action needed
         });
         
         commandInput.addEventListener('blur', () => {
-            console.log('😴 Input blurred');
+            // Blur event - no action needed
         });
         
         // Initialize enhanced features
@@ -630,9 +631,12 @@
         // Focus the input field
         commandInput.focus();
         
-        // Refocus when clicking anywhere
-        document.addEventListener('click', () => {
-            commandInput.focus();
+        // Refocus when clicking on terminal area only (not every click)
+        // Use event delegation for better performance
+        outputDiv.addEventListener('click', (e) => {
+            if (e.target === outputDiv || e.target.classList.contains('output-line')) {
+                commandInput.focus();
+            }
         });
         
         // Initialize

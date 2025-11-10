@@ -10,6 +10,13 @@ logger = logging.getLogger(__name__)
 class SwelistWrapper:
     """Wrapper for swelist library to fetch job data"""
     
+    # Class-level constants for better performance
+    SWELIST_TYPE_MAP = {
+        'internships': 'internship',
+        'newgrad': 'new_grad',
+        'fulltime': 'full_time'
+    }
+    
     def __init__(self):
         self.last_fetch_time = None
         self._mock_mode = True  # Start in mock mode, can be toggled
@@ -43,25 +50,18 @@ class SwelistWrapper:
             # Import swelist here to handle if it's not installed
             import swelist
             
-            # Map our job types to swelist types
-            swelist_type_map = {
-                'internships': 'internship',
-                'newgrad': 'new_grad',
-                'fulltime': 'full_time'
-            }
-            
-            swelist_type = swelist_type_map.get(job_type, job_type)
+            # Use class-level constant instead of recreating dict each time
+            swelist_type = self.SWELIST_TYPE_MAP.get(job_type, job_type)
             
             # Fetch jobs using swelist
             jobs_data = swelist.get(swelist_type)
             
-            # Convert to our format
-            jobs = []
-            if isinstance(jobs_data, list):
-                for job in jobs_data:
-                    normalized_job = self._normalize_job_data(job)
-                    if normalized_job:
-                        jobs.append(normalized_job)
+            # Convert to our format - optimized with list comprehension
+            jobs = [
+                normalized_job 
+                for job in (jobs_data if isinstance(jobs_data, list) else [])
+                if (normalized_job := self._normalize_job_data(job)) is not None
+            ]
             
             self.last_fetch_time = datetime.now()
             logger.info(f"Successfully fetched {len(jobs)} real jobs")
