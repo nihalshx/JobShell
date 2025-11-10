@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="JobShell - A retro-styled terminal interface for exploring tech jobs with real-time search and filtering capabilities.">
+    <meta name="keywords" content="job search, terminal, tech jobs, internships, career">
+    <meta name="author" content="JobShell">
     <title>JobShell - Job Hunting Terminal</title>
     <style>
         * {
@@ -274,16 +277,104 @@
         .terminal-output::-webkit-scrollbar-thumb:hover {
             opacity: 1;
         }
+        
+        /* Responsive Design for Mobile */
+        @media (max-width: 768px) {
+            .terminal-container {
+                border-width: 2px;
+            }
+            
+            .header {
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+            
+            .title {
+                font-size: 0.85em;
+            }
+            
+            .status {
+                font-size: 0.8em;
+            }
+            
+            .terminal-output {
+                font-size: 13px;
+                padding: 10px;
+            }
+            
+            .input-container {
+                padding: 8px;
+            }
+            
+            .command-input {
+                font-size: 14px;
+            }
+            
+            .prompt {
+                font-size: 14px;
+            }
+            
+            .completion-item {
+                padding: 6px 10px;
+                font-size: 13px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .terminal-output {
+                font-size: 12px;
+            }
+            
+            .command-input {
+                font-size: 13px;
+            }
+        }
+        
+        /* Accessibility improvements */
+        .output-line.error {
+            font-weight: bold;
+        }
+        
+        .command-input:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+        
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .terminal-container {
+                border-width: 4px;
+            }
+            
+            .output-line {
+                font-weight: 500;
+            }
+        }
+        
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="terminal-container">
-        <div class="header">
-            <div class="title">🚀 JOBSHELL - JOB HUNTING TERMINAL</div>
-            <div class="status" id="status">●CONNECTING</div>
-        </div>
+    <div class="terminal-container" role="main" aria-label="Job hunting terminal interface">
+        <header class="header">
+            <h1 class="title">🚀 JOBSHELL - JOB HUNTING TERMINAL</h1>
+            <div class="status" id="status" role="status" aria-live="polite">●CONNECTING</div>
+        </header>
         
-        <div class="terminal-output" id="output">
+        <div class="terminal-output" id="output" role="log" aria-live="polite" aria-atomic="false">
             <div class="output-line welcome">Welcome to JobShell!</div>
             <div class="output-line">Type 'help' to see available commands.</div>
             <div class="output-line">Ready for job hunting! 💼</div>
@@ -291,12 +382,16 @@
         </div>
         
         <div class="input-container">
-            <div class="completions" id="completions"></div>
-            <span class="prompt">$</span>
-            <input type="text" class="command-input" id="commandInput" 
+            <div class="completions" id="completions" role="listbox" aria-label="Command completions"></div>
+            <label for="commandInput" class="prompt" aria-hidden="true">$</label>
+            <input type="text" 
+                   class="command-input" 
+                   id="commandInput" 
                    placeholder="Type your command here... (Tab for completions)" 
                    autocomplete="off" 
-                   spellcheck="false">
+                   spellcheck="false"
+                   aria-label="Command input"
+                   aria-describedby="status">
         </div>
     </div>
 
