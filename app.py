@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
-Swelist Web Terminal - Flask Backend
-A retro-styled web terminal for job searching using swelist
+JobShell Web Terminal - Flask Backend
+
+A retro-styled web terminal for job searching using swelist.
+Provides real-time communication via WebSocket for an interactive
+terminal experience.
 """
 
 import asyncio
@@ -15,21 +18,25 @@ import sys
 # Add backend directory to Python path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
 
+from config import Config
 from backend.command_handler import CommandHandler, JobShellSession
 from backend.swelist_wrapper import SwelistWrapper
 from datetime import datetime, timedelta
 import threading
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=getattr(logging, Config.LOG_LEVEL),
+    format=Config.LOG_FORMAT
+)
 logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'jobshell_secret_key_2024'
+app.config['SECRET_KEY'] = Config.SECRET_KEY
 
 # Initialize SocketIO with CORS enabled
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+socketio = SocketIO(app, cors_allowed_origins=Config.CORS_ALLOWED_ORIGINS, async_mode='threading')
 
 # Global session storage (in production, use Redis or database)
 sessions: Dict[str, JobShellSession] = {}
@@ -37,18 +44,24 @@ session_last_activity: Dict[str, datetime] = {}
 swelist_client = SwelistWrapper()
 
 def cleanup_stale_sessions():
-    """Periodically clean up inactive sessions to prevent memory leaks"""
+    """
+    Periodically clean up inactive sessions to prevent memory leaks.
+    
+    Runs in a background thread and removes sessions that have been
+    inactive for more than SESSION_TIMEOUT_MINUTES.
+    """
     while True:
         try:
-            # Sleep for 5 minutes between cleanups
-            threading.Event().wait(300)
+            # Sleep for cleanup interval
+            threading.Event().wait(Config.SESSION_CLEANUP_INTERVAL_SECONDS)
             
             current_time = datetime.now()
             stale_sessions = []
             
-            # Find sessions inactive for more than 30 minutes
+            # Find sessions inactive for more than timeout period
+            timeout_delta = timedelta(minutes=Config.SESSION_TIMEOUT_MINUTES)
             for session_id, last_activity in list(session_last_activity.items()):
-                if current_time - last_activity > timedelta(minutes=30):
+                if current_time - last_activity > timeout_delta:
                     stale_sessions.append(session_id)
             
             # Remove stale sessions
@@ -67,7 +80,15 @@ cleanup_thread = threading.Thread(target=cleanup_stale_sessions, daemon=True)
 cleanup_thread.start()
 
 def get_or_create_session(session_id: str) -> JobShellSession:
-    """Get existing session or create new one"""
+    """
+    Get existing session or create a new one.
+    
+    Args:
+        session_id: Unique identifier for the session
+        
+    Returns:
+        JobShellSession instance for this session ID
+    """
     if session_id not in sessions:
         sessions[session_id] = JobShellSession()
         logger.info(f"Created new session: {session_id}")
@@ -124,11 +145,27 @@ def handle_disconnect():
 
 @socketio.on('command')
 def handle_command(data):
-    """Handle terminal commands from client"""
+    """
+    Handle terminal commands from client.
+    
+    Validates input, processes commands, and sends appropriate
+    responses back to the client via WebSocket.
+    
+    Args:
+        data: Dictionary containing 'command' key with command string
+    """
     session_id = request.sid
     command = data.get('command', '').strip()
     
+    # Input validation - prevent empty or excessively long commands
     if not command:
+        return
+    
+    if len(command) > Config.MAX_COMMAND_LENGTH:
+        emit('terminal_output', {
+            'output': f'❌ Command too long. Maximum {Config.MAX_COMMAND_LENGTH} characters allowed.',
+            'type': 'error'
+        })
         return
     
     logger.info(f"Session {session_id}: '{command}'")
@@ -284,16 +321,23 @@ def handle_toggle_mode():
     })
 
 if __name__ == '__main__':
-    print("🚀 Starting Swelist Web Terminal...")
-    print("📡 Server will be available at: http://localhost:5000")
+    # Validate configuration
+    if not Config.validate():
+        logger.error("Invalid configuration. Exiting.")
+        sys.exit(1)
+    
+    print("🚀 Starting JobShell Web Terminal...")
+    print(f"📡 Server will be available at: http://{Config.HOST}:{Config.PORT}")
+    print(f"🔧 Debug mode: {Config.DEBUG}")
+    print(f"🎯 Mock mode: {Config.MOCK_MODE}")
     print("🎯 Ready for job hunting!")
     print()
     
     # Run with SocketIO
     socketio.run(
         app, 
-        host='0.0.0.0', 
-        port=5000, 
-        debug=True,
+        host=Config.HOST, 
+        port=Config.PORT, 
+        debug=Config.DEBUG,
         use_reloader=False  # Disable reloader for stability
     )

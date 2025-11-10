@@ -11,9 +11,12 @@ A powerful, retro-styled terminal interface for exploring tech jobs. JobShell co
 - **Smooth Animations**: Slide-in effects, loading indicators, and transitions
 - **Auto-Completion**: Tab completion for commands and parameters
 - **Command History**: Navigate with arrow keys, persistent across sessions
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
+- **Accessibility**: Full ARIA support, keyboard navigation, screen reader compatible
 
 ### 📦 Job Management
-- **Advanced Search**: Search across all job fields with keywords
+- **Advanced Search**: Search across all job fields with relevance ranking
+- **Pagination Support**: Browse large job lists page by page (e.g., `list 2`)
 - **Smart Filtering**: Multiple filter criteria and operators
 - **Bookmarking System**: Save and manage favorite job listings
 - **Export Data**: Download jobs/bookmarks as JSON or CSV files
@@ -23,6 +26,14 @@ A powerful, retro-styled terminal interface for exploring tech jobs. JobShell co
 - **Theme Persistence**: Remember your preferred theme
 - **Command History**: Persistent command history across sessions
 - **Browser Storage**: All data saved locally for privacy
+- **Configurable Timeouts**: Customizable session timeout and cleanup
+
+### 🎯 New Features (Latest Update)
+- **Relevance-Based Search**: Search results ranked by match quality
+- **Enhanced Error Messages**: Helpful tips and suggestions with errors
+- **Configuration Management**: Environment-based configuration
+- **Mobile Optimization**: Responsive breakpoints for all screen sizes
+- **Accessibility Features**: High contrast and reduced motion support
 
 ## 🛠️ Tech Stack
 
@@ -65,9 +76,9 @@ A powerful, retro-styled terminal interface for exploring tech jobs. JobShell co
 | Command | Description | Example |
 |---------|-------------|---------|
 | `fetch <type>` | Fetch jobs (internships/newgrad/fulltime) | `fetch internships` |
-| `list` | Display current jobs | `list` |
+| `list [page]` | Display current jobs with pagination | `list` or `list 2` |
 | `open <id>` | Open job link in browser | `open 1` |
-| `search <keyword>` | Search across all job fields | `search python` |
+| `search <keyword>` | Search with relevance ranking | `search python` |
 
 ### ⭐ Bookmarks
 | Command | Description | Example |
@@ -127,6 +138,7 @@ filter python
 ```
 JobShell/
 ├── app.py                      # Main Flask application
+├── config.py                   # Configuration management
 ├── requirements.txt            # Python dependencies
 ├── README.md                   # Project documentation
 ├── backend/
@@ -138,11 +150,40 @@ JobShell/
 
 ## 🔧 Configuration
 
+### Environment Variables
+
+JobShell supports configuration through environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `HOST` | Server host address | `0.0.0.0` |
+| `PORT` | Server port | `5000` |
+| `FLASK_DEBUG` | Enable debug mode | `false` |
+| `SECRET_KEY` | Flask secret key | `jobshell_secret_key_2024` |
+| `SESSION_TIMEOUT_MINUTES` | Session timeout | `30` |
+| `MAX_COMMAND_LENGTH` | Max command length | `1000` |
+| `ITEMS_PER_PAGE` | Jobs per page | `20` |
+| `MOCK_MODE` | Use mock data | `true` |
+| `LOG_LEVEL` | Logging level | `INFO` |
+
+### Example Configuration
+
+```bash
+# Set custom port and debug mode
+export PORT=8080
+export FLASK_DEBUG=true
+export ITEMS_PER_PAGE=30
+python app.py
+```
+
+### Data Modes
+
 The application starts in **mock mode** with sample data. To use real swelist data:
 
-1. Ensure swelist is properly configured
-2. Use the Konami code (↑↑↓↓←→←→BA) to toggle modes
-3. Or modify `SwelistWrapper` to start in real mode
+1. Set `MOCK_MODE=false` environment variable
+2. Ensure swelist is properly configured
+3. Use the Konami code (↑↑↓↓←→←→BA) to toggle modes
+4. Or modify `config.py` defaults
 
 ## 🎨 Customization
 
