@@ -412,20 +412,68 @@
         let currentTheme = 'green';
         let isLoading = false;
         let scrollTimeout = null;  // For debouncing scroll operations
+        let isInitialConnection = true;  // Track if this is the first connection
+        let reconnectAttempts = 0;  // Track reconnection attempts
         
         // Socket connection events
         socket.on('connect', () => {
             console.log('✅ Connected to server');
             statusDiv.textContent = '●ONLINE';
             statusDiv.style.color = '#00ff00';
-            addOutput('Connected to server!', 'success');
+            
+            // Only show connection message on initial connection or after failed reconnection
+            if (isInitialConnection) {
+                addOutput('Connected to server!', 'success');
+                isInitialConnection = false;
+            } else if (reconnectAttempts > 0) {
+                addOutput('Reconnected to server!', 'success');
+            }
+            
+            // Reset reconnection attempts on successful connection
+            reconnectAttempts = 0;
         });
         
-        socket.on('disconnect', () => {
-            console.log('❌ Disconnected from server');
+        socket.on('disconnect', (reason) => {
+            console.log('❌ Disconnected from server. Reason:', reason);
+            statusDiv.textContent = '●RECONNECTING';
+            statusDiv.style.color = '#ffaa00';
+            
+            // Only show error for unexpected disconnections, not for automatic reconnections
+            // Socket.IO will automatically reconnect, so we show a less alarming message
+            if (reason === 'io server disconnect') {
+                // Server initiated disconnect, might not reconnect automatically
+                addOutput('Connection closed by server. Attempting to reconnect...', 'info');
+            } else if (reason === 'transport close' || reason === 'ping timeout') {
+                // Network issue, will auto-reconnect
+                addOutput('Connection interrupted. Reconnecting...', 'info');
+            }
+            // For other cases like 'io client disconnect', no message needed
+        });
+        
+        socket.on('connect_error', (error) => {
+            console.log('❌ Connection error:', error);
+            reconnectAttempts++;
+            
+            if (reconnectAttempts === 1) {
+                addOutput('Unable to connect to server. Retrying...', 'error');
+            } else if (reconnectAttempts % 3 === 0) {
+                // Show periodic updates every 3 attempts
+                addOutput(`Still trying to connect (attempt ${reconnectAttempts})...`, 'info');
+            }
+        });
+        
+        socket.on('reconnect_attempt', (attemptNumber) => {
+            console.log(`🔄 Reconnection attempt ${attemptNumber}`);
+            statusDiv.textContent = '●RECONNECTING';
+            statusDiv.style.color = '#ffaa00';
+        });
+        
+        socket.on('reconnect_failed', () => {
+            console.log('❌ Reconnection failed');
             statusDiv.textContent = '●OFFLINE';
             statusDiv.style.color = '#ff4444';
-            addOutput('Connection lost!', 'error');
+            addOutput('Connection lost! Unable to reconnect to server.', 'error');
+            addOutput('Please refresh the page to try again.', 'info');
         });
         
         socket.on('terminal_output', (data) => {
